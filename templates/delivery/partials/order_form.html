@@ -1,0 +1,125 @@
+{% load djicons i18n %}
+
+<div class="p-4">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-4">
+        <a hx-get="{% url 'delivery:orders' %}"
+           hx-target="#main-content-area"
+           hx-push-url="true"
+           class="btn btn-ghost btn-sm">
+            {% icon "arrow-back-outline" %}
+        </a>
+        <h2 class="text-xl font-bold">
+            {% if is_new %}
+            {% trans "New Delivery Order" %}
+            {% else %}
+            {% trans "Edit Order" %} {{ order.number }}
+            {% endif %}
+        </h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post"
+                  hx-post="{% if is_new %}{% url 'delivery:order_create' %}{% else %}{% url 'delivery:order_edit' order.id %}{% endif %}"
+                  hx-target="#main-content-area">
+                {% csrf_token %}
+
+                <!-- Order type -->
+                <div class="mb-4">
+                    <label class="label" for="id_order_type">{% trans "Order Type" %}</label>
+                    {{ form.order_type }}
+                    {% if form.order_type.errors %}
+                    <p class="text-error text-sm mt-1">{{ form.order_type.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Customer info -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="label" for="id_customer_name">{% trans "Customer Name" %} *</label>
+                        {{ form.customer_name }}
+                        {% if form.customer_name.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.customer_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="label" for="id_customer_phone">{% trans "Customer Phone" %} *</label>
+                        {{ form.customer_phone }}
+                        {% if form.customer_phone.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.customer_phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Delivery address -->
+                <div class="mb-4">
+                    <label class="label" for="id_delivery_address">{% trans "Delivery Address" %}</label>
+                    {{ form.delivery_address }}
+                    {% if form.delivery_address.errors %}
+                    <p class="text-error text-sm mt-1">{{ form.delivery_address.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Zone and Driver -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="label" for="id_delivery_zone">{% trans "Delivery Zone" %}</label>
+                        {{ form.delivery_zone }}
+                        {% if form.delivery_zone.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.delivery_zone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="label" for="id_driver">{% trans "Driver" %}</label>
+                        {{ form.driver }}
+                        {% if form.driver.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.driver.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Promised at and Payment -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="label" for="id_promised_at">{% trans "Promised At" %}</label>
+                        {{ form.promised_at }}
+                        {% if form.promised_at.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.promised_at.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="label" for="id_payment_method">{% trans "Payment Method" %}</label>
+                        {{ form.payment_method }}
+                        {% if form.payment_method.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.payment_method.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-4">
+                    <label class="label" for="id_notes">{% trans "Notes" %}</label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                    <p class="text-error text-sm mt-1">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center justify-end gap-3 pt-4 border-t">
+                    <a hx-get="{% url 'delivery:orders' %}"
+                       hx-target="#main-content-area"
+                       hx-push-url="true"
+                       class="btn">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn color-primary">
+                        {% icon "save-outline" %}
+                        {% if is_new %}{% trans "Create Order" %}{% else %}{% trans "Save Changes" %}{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

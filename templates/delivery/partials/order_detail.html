@@ -1,0 +1,271 @@
+{% load djicons i18n %}
+
+<div class="p-4" x-data="{ showDeleteModal: false, showAddItem: false }">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+            <a hx-get="{% url 'delivery:orders' %}"
+               hx-target="#main-content-area"
+               hx-push-url="true"
+               class="btn btn-ghost btn-sm">
+                {% icon "arrow-back-outline" %}
+            </a>
+            <div>
+                <h2 class="text-xl font-bold">{{ order.number }}</h2>
+                <span class="badge color-{% if order.order_type == 'delivery' %}primary{% else %}medium{% endif %}">
+                    {{ order.get_order_type_display }}
+                </span>
+                <span class="badge color-{% if order.status == 'pending' %}warning{% elif order.status == 'preparing' %}primary{% elif order.status == 'ready' %}success{% elif order.status == 'in_transit' %}info{% elif order.status == 'delivered' or order.status == 'picked_up' %}success{% elif order.status == 'cancelled' %}error{% else %}medium{% endif %}">
+                    {{ order.get_status_display }}
+                </span>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <a hx-get="{% url 'delivery:order_edit' order.id %}"
+               hx-target="#main-content-area"
+               hx-push-url="true"
+               class="btn btn-outline btn-sm">
+                {% icon "create-outline" %}
+                {% trans "Edit" %}
+            </a>
+            <button @click="showDeleteModal = true" class="btn btn-outline color-error btn-sm">
+                {% icon "trash-outline" %}
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Customer info -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{% icon "person-outline" css_class="text-primary" %} {% trans "Customer" %}</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <div class="text-sm text-muted">{% trans "Name" %}</div>
+                    <div class="font-semibold">{{ order.customer_name }}</div>
+                </div>
+                <div class="mb-2">
+                    <div class="text-sm text-muted">{% trans "Phone" %}</div>
+                    <div>{{ order.customer_phone }}</div>
+                </div>
+                {% if order.delivery_address %}
+                <div class="mb-2">
+                    <div class="text-sm text-muted">{% trans "Address" %}</div>
+                    <div>{{ order.delivery_address }}</div>
+                </div>
+                {% endif %}
+                {% if order.delivery_zone %}
+                <div>
+                    <div class="text-sm text-muted">{% trans "Zone" %}</div>
+                    <div>{{ order.delivery_zone.name }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Order info -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{% icon "document-text-outline" css_class="text-warning" %} {% trans "Order Info" %}</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <div class="text-sm text-muted">{% trans "Ordered" %}</div>
+                    <div>{{ order.ordered_at|date:"d/m/Y H:i" }}</div>
+                </div>
+                {% if order.promised_at %}
+                <div class="mb-2">
+                    <div class="text-sm text-muted">{% trans "Promised" %}</div>
+                    <div>{{ order.promised_at|date:"d/m/Y H:i" }}</div>
+                </div>
+                {% endif %}
+                {% if order.completed_at %}
+                <div class="mb-2">
+                    <div class="text-sm text-muted">{% trans "Completed" %}</div>
+                    <div>{{ order.completed_at|date:"d/m/Y H:i" }}</div>
+                </div>
+                {% endif %}
+                {% if order.payment_method %}
+                <div class="mb-2">
+                    <div class="text-sm text-muted">{% trans "Payment" %}</div>
+                    <div>{{ order.payment_method }}
+                        {% if order.paid %}
+                        <span class="badge badge-sm color-success">{% trans "Paid" %}</span>
+                        {% else %}
+                        <span class="badge badge-sm color-warning">{% trans "Unpaid" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if order.notes %}
+                <div>
+                    <div class="text-sm text-muted">{% trans "Notes" %}</div>
+                    <div class="text-sm">{{ order.notes }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Status & Driver -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{% icon "bicycle-outline" css_class="text-success" %} {% trans "Delivery" %}</h3>
+            </div>
+            <div class="card-body">
+                <!-- Status update -->
+                <div class="mb-3">
+                    <div class="text-sm text-muted mb-1">{% trans "Update Status" %}</div>
+                    <select class="select"
+                            hx-post="{% url 'delivery:order_update_status' order.id %}"
+                            hx-vals='js:{status: event.target.value}'
+                            hx-target="#main-content-area"
+                            hx-swap="innerHTML"
+                            hx-on::after-request="if(event.detail.successful) htmx.ajax('GET', '{% url 'delivery:order_detail' order.id %}', '#main-content-area')">
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Driver assignment -->
+                {% if order.order_type == 'delivery' %}
+                <div class="mb-3">
+                    <div class="text-sm text-muted mb-1">{% trans "Assign Driver" %}</div>
+                    <select class="select"
+                            hx-post="{% url 'delivery:order_assign_driver' order.id %}"
+                            hx-vals='js:{driver_id: event.target.value}'
+                            hx-swap="none">
+                        <option value="">{% trans "No driver" %}</option>
+                        {% for d in drivers %}
+                        <option value="{{ d.id }}" {% if order.driver_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <!-- Totals -->
+                <div class="border-t pt-3 mt-3">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-muted">{% trans "Subtotal" %}</span>
+                        <span>{{ order.subtotal }}</span>
+                    </div>
+                    {% if order.delivery_fee %}
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-muted">{% trans "Delivery fee" %}</span>
+                        <span>{{ order.delivery_fee }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between font-bold text-lg mt-2">
+                        <span>{% trans "Total" %}</span>
+                        <span>{{ order.total }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items -->
+    <div class="card mt-4">
+        <div class="card-header flex items-center justify-between">
+            <h3 class="card-title">{% icon "list-outline" %} {% trans "Items" %} ({{ items|length }})</h3>
+            <button @click="showAddItem = true" class="btn btn-sm color-primary">
+                {% icon "add-outline" %} {% trans "Add Item" %}
+            </button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Product" %}</th>
+                        <th class="text-center">{% trans "Qty" %}</th>
+                        <th class="text-right">{% trans "Unit Price" %}</th>
+                        <th class="text-right">{% trans "Total" %}</th>
+                        <th>{% trans "Notes" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td class="font-semibold">{{ item.product_name }}</td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-right">{{ item.unit_price }}</td>
+                        <td class="text-right font-semibold">{{ item.line_total }}</td>
+                        <td class="text-muted text-sm">{{ item.notes|default:"" }}</td>
+                        <td class="text-right">
+                            <button class="btn btn-ghost btn-sm color-error"
+                                    hx-post="{% url 'delivery:order_remove_item' order.id item.id %}"
+                                    hx-confirm="{% trans 'Remove this item?' %}"
+                                    hx-on::after-request="if(event.detail.successful) htmx.ajax('GET', '{% url 'delivery:order_detail' order.id %}', '#main-content-area')">
+                                {% icon "trash-outline" %}
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">{% trans "No items yet" %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div class="modal-backdrop" :data-state="showAddItem ? 'open' : 'closed'">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">{% trans "Add Item" %}</h2>
+                <button @click="showAddItem = false" class="modal-close">&times;</button>
+            </div>
+            <form hx-post="{% url 'delivery:order_add_item' order.id %}"
+                  hx-on::after-request="if(event.detail.successful) { showAddItem = false; htmx.ajax('GET', '{% url 'delivery:order_detail' order.id %}', '#main-content-area'); }">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="label">{% trans "Product name" %}</label>
+                        <input type="text" name="product_name" class="input" required placeholder="{% trans 'Product name' %}">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="label">{% trans "Quantity" %}</label>
+                            <input type="number" name="quantity" class="input" value="1" min="1" required>
+                        </div>
+                        <div>
+                            <label class="label">{% trans "Unit price" %}</label>
+                            <input type="number" name="unit_price" class="input" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="label">{% trans "Notes" %}</label>
+                        <textarea name="notes" class="textarea" rows="2" placeholder="{% trans 'Special instructions' %}"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" @click="showAddItem = false" class="btn">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn color-primary">{% trans "Add" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete confirmation modal -->
+    <div class="modal-backdrop" :data-state="showDeleteModal ? 'open' : 'closed'">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">{% trans "Delete Order" %}</h2>
+                <button @click="showDeleteModal = false" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>{% trans "Are you sure you want to delete order" %} <strong>{{ order.number }}</strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button @click="showDeleteModal = false" class="btn">{% trans "Cancel" %}</button>
+                <button class="btn color-error"
+                        hx-post="{% url 'delivery:order_delete' order.id %}"
+                        hx-on::after-request="if(event.detail.successful) htmx.ajax('GET', '{% url 'delivery:orders' %}', '#main-content-area')">
+                    {% icon "trash-outline" %} {% trans "Delete" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

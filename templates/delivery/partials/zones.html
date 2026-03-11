@@ -1,0 +1,86 @@
+{% load djicons i18n %}
+
+<div class="p-4" x-data="{ deleteZoneId: null, deleteZoneName: '' }">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold">{% trans "Delivery Zones" %}</h2>
+        <a hx-get="{% url 'delivery:zone_create' %}"
+           hx-target="#main-content-area"
+           hx-push-url="true"
+           class="btn color-primary">
+            {% icon "add-outline" %}
+            <span class="hidden md:inline">{% trans "New Zone" %}</span>
+        </a>
+    </div>
+
+    <!-- Zones list -->
+    <div class="card">
+        <div class="list">
+            {% for zone in zones %}
+            <div class="list-item">
+                <div class="list-item-start">
+                    {% icon "map-outline" css_class="text-xl text-primary" %}
+                </div>
+                <div class="list-item-content">
+                    <div class="list-item-label">
+                        {{ zone.name }}
+                        {% if not zone.is_active %}
+                        <span class="badge badge-sm color-medium ml-2">{% trans "Inactive" %}</span>
+                        {% endif %}
+                    </div>
+                    <div class="list-item-note">
+                        {% trans "Fee" %}: {{ zone.delivery_fee }}
+                        &middot; {% trans "Min" %}: {{ zone.min_order }}
+                        &middot; ~{{ zone.estimated_time }} {% trans "min" %}
+                        {% if zone.max_radius_km %}&middot; {{ zone.max_radius_km }} km{% endif %}
+                    </div>
+                </div>
+                <div class="list-item-end flex items-center gap-2">
+                    <a hx-get="{% url 'delivery:zone_edit' zone.id %}"
+                       hx-target="#main-content-area"
+                       hx-push-url="true"
+                       class="btn btn-ghost btn-sm">
+                        {% icon "create-outline" %}
+                    </a>
+                    <button @click="deleteZoneId = '{{ zone.id }}'; deleteZoneName = '{{ zone.name }}'"
+                            class="btn btn-ghost btn-sm color-error">
+                        {% icon "trash-outline" %}
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center">
+                {% icon "map-outline" css_class="text-4xl text-muted mb-2" %}
+                <p class="text-muted mb-4">{% trans "No delivery zones yet" %}</p>
+                <a hx-get="{% url 'delivery:zone_create' %}"
+                   hx-target="#main-content-area"
+                   hx-push-url="true"
+                   class="btn color-primary">
+                    {% icon "add-outline" %}
+                    {% trans "Create Zone" %}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Delete confirmation modal -->
+    <div class="modal-backdrop" :data-state="deleteZoneId ? 'open' : 'closed'">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">{% trans "Delete Zone" %}</h2>
+                <button @click="deleteZoneId = null" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>{% trans "Are you sure you want to delete zone" %} <strong x-text="deleteZoneName"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button @click="deleteZoneId = null" class="btn">{% trans "Cancel" %}</button>
+                <button class="btn color-error"
+                        @click="fetch(`/delivery/zones/${deleteZoneId}/delete/`, {method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'}}).then(r => { if(r.ok) htmx.ajax('GET', '{% url 'delivery:zones' %}', '#main-content-area'); deleteZoneId = null; })">
+                    {% icon "trash-outline" %} {% trans "Delete" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

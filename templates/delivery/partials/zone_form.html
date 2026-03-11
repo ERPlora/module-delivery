@@ -1,0 +1,108 @@
+{% load djicons i18n %}
+
+<div class="p-4">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-4">
+        <a hx-get="{% url 'delivery:zones' %}"
+           hx-target="#main-content-area"
+           hx-push-url="true"
+           class="btn btn-ghost btn-sm">
+            {% icon "arrow-back-outline" %}
+        </a>
+        <h2 class="text-xl font-bold">
+            {% if is_new %}
+            {% trans "New Zone" %}
+            {% else %}
+            {% trans "Edit Zone" %}: {{ zone.name }}
+            {% endif %}
+        </h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post"
+                  hx-post="{% if is_new %}{% url 'delivery:zone_create' %}{% else %}{% url 'delivery:zone_edit' zone.id %}{% endif %}"
+                  hx-target="#main-content-area">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label class="label" for="id_name">{% trans "Zone Name" %} *</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <p class="text-error text-sm mt-1">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="label" for="id_delivery_fee">{% trans "Delivery Fee" %}</label>
+                        {{ form.delivery_fee }}
+                        {% if form.delivery_fee.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.delivery_fee.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="label" for="id_min_order">{% trans "Minimum Order" %}</label>
+                        {{ form.min_order }}
+                        {% if form.min_order.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.min_order.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="label" for="id_estimated_time">{% trans "Estimated Time (min)" %}</label>
+                        {{ form.estimated_time }}
+                        {% if form.estimated_time.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.estimated_time.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="label" for="id_zip_codes">{% trans "ZIP Codes" %}</label>
+                        {{ form.zip_codes }}
+                        <p class="text-muted text-xs mt-1">{% trans "Comma-separated list of ZIP codes" %}</p>
+                        {% if form.zip_codes.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.zip_codes.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="label" for="id_max_radius_km">{% trans "Max Radius (km)" %}</label>
+                        {{ form.max_radius_km }}
+                        {% if form.max_radius_km.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.max_radius_km.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="label" for="id_sort_order">{% trans "Sort Order" %}</label>
+                        {{ form.sort_order }}
+                    </div>
+                    <div class="flex items-center gap-3 pt-6">
+                        <label class="label mb-0">{% trans "Active" %}</label>
+                        <label class="toggle">
+                            {{ form.is_active }}
+
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center justify-end gap-3 pt-4 border-t">
+                    <a hx-get="{% url 'delivery:zones' %}"
+                       hx-target="#main-content-area"
+                       hx-push-url="true"
+                       class="btn">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn color-primary">
+                        {% icon "save-outline" %}
+                        {% if is_new %}{% trans "Create Zone" %}{% else %}{% trans "Save Changes" %}{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

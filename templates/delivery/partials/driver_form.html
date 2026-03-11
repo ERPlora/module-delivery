@@ -1,0 +1,94 @@
+{% load djicons i18n %}
+
+<div class="p-4">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-4">
+        <a hx-get="{% url 'delivery:drivers' %}"
+           hx-target="#main-content-area"
+           hx-push-url="true"
+           class="btn btn-ghost btn-sm">
+            {% icon "arrow-back-outline" %}
+        </a>
+        <h2 class="text-xl font-bold">
+            {% if is_new %}
+            {% trans "New Driver" %}
+            {% else %}
+            {% trans "Edit Driver" %}: {{ driver.name }}
+            {% endif %}
+        </h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post"
+                  hx-post="{% if is_new %}{% url 'delivery:driver_create' %}{% else %}{% url 'delivery:driver_edit' driver.id %}{% endif %}"
+                  hx-target="#main-content-area">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="label" for="id_name">{% trans "Name" %} *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="label" for="id_phone">{% trans "Phone" %} *</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                        <p class="text-error text-sm mt-1">{{ form.phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="label" for="id_vehicle_type">{% trans "Vehicle Type" %}</label>
+                    {{ form.vehicle_type }}
+                    {% if form.vehicle_type.errors %}
+                    <p class="text-error text-sm mt-1">{{ form.vehicle_type.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center gap-6 mb-4">
+                    <div class="flex items-center gap-3">
+                        <label class="label mb-0">{% trans "External" %}</label>
+                        <label class="toggle">
+                            {{ form.is_external }}
+
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="label mb-0">{% trans "Active" %}</label>
+                        <label class="toggle">
+                            {{ form.is_active }}
+
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="label" for="id_notes">{% trans "Notes" %}</label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                    <p class="text-error text-sm mt-1">{{ form.notes.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center justify-end gap-3 pt-4 border-t">
+                    <a hx-get="{% url 'delivery:drivers' %}"
+                       hx-target="#main-content-area"
+                       hx-push-url="true"
+                       class="btn">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="btn color-primary">
+                        {% icon "save-outline" %}
+                        {% if is_new %}{% trans "Add Driver" %}{% else %}{% trans "Save Changes" %}{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

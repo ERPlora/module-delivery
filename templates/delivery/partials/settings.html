@@ -1,0 +1,102 @@
+{% load djicons i18n %}
+
+<div class="p-4">
+    <!-- Overview Stats -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="card">
+            <div class="card-body flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    {% icon "bicycle-outline" css_class="text-xl text-primary" %}
+                </div>
+                <div>
+                    <div class="text-2xl font-bold">{{ today_orders_count }}</div>
+                    <div class="text-xs text-muted">{% trans "Today's Orders" %}</div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                    {% icon "cash-outline" css_class="text-xl text-success" %}
+                </div>
+                <div>
+                    <div class="text-2xl font-bold">{{ today_revenue }}</div>
+                    <div class="text-xs text-muted">{% trans "Today's Revenue" %}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Settings -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="card-title">{% icon "settings-outline" css_class="text-primary" %} {% trans "Delivery Settings" %}</h3>
+        </div>
+        <div class="list">
+            <div class="list-item">
+                <div class="list-item-content">
+                    <div class="list-item-label">{% trans "Default Prep Time" %}</div>
+                    <div class="list-item-note">{% trans "Minutes to prepare a delivery order by default" %}</div>
+                </div>
+                <div class="list-item-end">
+                    <input type="number" name="default_prep_time"
+                           value="{{ config.default_prep_time }}"
+                           class="input input--sm"
+                           style="width: 80px;"
+                           hx-post="{% url 'delivery:settings_input' %}"
+                           hx-vals='js:{name: "default_prep_time", value: event.target.value}'
+                           hx-trigger="change"
+                           hx-swap="none"
+                           min="1" max="120">
+                </div>
+            </div>
+            <div class="list-item">
+                <div class="list-item-content">
+                    <div class="list-item-label">{% trans "Auto Assign Zone" %}</div>
+                    <div class="list-item-note">{% trans "Automatically assign delivery zone based on ZIP code" %}</div>
+                </div>
+                <div class="list-item-end">
+                    <label class="toggle">
+                        <input type="checkbox" name="auto_assign_zone"
+                               {% if config.auto_assign_zone %}checked{% endif %}
+                               hx-post="{% url 'delivery:settings_toggle' %}"
+                               hx-vals='js:{name: "auto_assign_zone", value: event.target.checked ? "true" : "false"}'
+                               hx-swap="none">
+
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="card-title">{% icon "link-outline" %} {% trans "Quick Actions" %}</h3>
+        </div>
+        <div class="list">
+            <a hx-get="{% url 'delivery:zones' %}"
+               hx-target="#main-content-area"
+               hx-push-url="true"
+               class="list-item list-item-clickable">
+                <div class="list-item-start">{% icon "map-outline" css_class="text-primary" %}</div>
+                <div class="list-item-content">
+                    <div class="list-item-label">{% trans "Delivery Zones" %}</div>
+                    <div class="list-item-note">{{ zones_count }} {% trans "zones configured" %}</div>
+                </div>
+                <div class="list-item-end">{% icon "chevron-forward-outline" css_class="text-muted" %}</div>
+            </a>
+            <a hx-get="{% url 'delivery:drivers' %}"
+               hx-target="#main-content-area"
+               hx-push-url="true"
+               class="list-item list-item-clickable">
+                <div class="list-item-start">{% icon "person-outline" css_class="text-warning" %}</div>
+                <div class="list-item-content">
+                    <div class="list-item-label">{% trans "Drivers" %}</div>
+                    <div class="list-item-note">{{ drivers_count }} {% trans "drivers registered" %}</div>
+                </div>
+                <div class="list-item-end">{% icon "chevron-forward-outline" css_class="text-muted" %}</div>
+            </a>
+        </div>
+    </div>
+</div>

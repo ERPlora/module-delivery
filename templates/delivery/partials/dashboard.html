@@ -1,0 +1,227 @@
+{% load djicons i18n %}
+
+<!-- Stats row -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 p-4">
+    <div class="card">
+        <div class="card-body flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                {% icon "time-outline" css_class="text-xl text-warning" %}
+            </div>
+            <div>
+                <div class="text-2xl font-bold">{{ pending_count }}</div>
+                <div class="text-xs text-muted">{% trans "Pending" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                {% icon "flame-outline" css_class="text-xl text-primary" %}
+            </div>
+            <div>
+                <div class="text-2xl font-bold">{{ preparing_count }}</div>
+                <div class="text-xs text-muted">{% trans "Preparing" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                {% icon "checkmark-circle-outline" css_class="text-xl text-success" %}
+            </div>
+            <div>
+                <div class="text-2xl font-bold">{{ ready_count }}</div>
+                <div class="text-xs text-muted">{% trans "Ready" %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-info/10 flex items-center justify-center">
+                {% icon "bicycle-outline" css_class="text-xl text-info" %}
+            </div>
+            <div>
+                <div class="text-2xl font-bold">{{ in_transit_count }}</div>
+                <div class="text-xs text-muted">{% trans "In Transit" %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary bar -->
+<div class="flex items-center gap-3 px-4 mb-4">
+    <div class="flex-1 text-sm text-muted">
+        {% icon "checkmark-done-outline" css_class="text-success" %}
+        {{ delivered_count }} {% trans "delivered today" %}
+        &middot;
+        {% icon "cash-outline" css_class="text-success" %}
+        {{ total_revenue }} {% trans "revenue" %}
+        {% if cancelled_count %}
+        &middot;
+        {% icon "close-circle-outline" css_class="text-error" %}
+        {{ cancelled_count }} {% trans "cancelled" %}
+        {% endif %}
+    </div>
+    <a hx-get="{% url 'delivery:order_create' %}"
+       hx-target="#main-content-area"
+       hx-push-url="true"
+       class="btn color-primary">
+        {% icon "add-outline" %}
+        <span class="hidden md:inline">{% trans "New Order" %}</span>
+    </a>
+</div>
+
+<!-- Kanban board -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-4 pb-4">
+    <!-- Pending column -->
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <span class="badge color-warning">{% trans "Pending" %}</span>
+            <span class="text-xs text-muted">({{ pending_orders|length }})</span>
+        </div>
+        <div class="flex flex-col gap-2">
+            {% for order in pending_orders %}
+            <a hx-get="{% url 'delivery:order_detail' order.id %}"
+               hx-target="#main-content-area"
+               hx-push-url="true"
+               class="card card-hover cursor-pointer">
+                <div class="card-body p-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">{{ order.number }}</span>
+                        <span class="badge badge-sm color-{% if order.order_type == 'delivery' %}primary{% else %}medium{% endif %}">
+                            {{ order.get_order_type_display }}
+                        </span>
+                    </div>
+                    <div class="text-sm">{{ order.customer_name }}</div>
+                    <div class="text-xs text-muted mt-1">
+                        {% icon "call-outline" css_class="text-xs" %} {{ order.customer_phone }}
+                    </div>
+                    {% if order.total %}
+                    <div class="text-sm font-semibold mt-1">{{ order.total }}</div>
+                    {% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <div class="text-center text-sm text-muted py-4">{% trans "No pending orders" %}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Preparing column -->
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <span class="badge color-primary">{% trans "Preparing" %}</span>
+            <span class="text-xs text-muted">({{ preparing_orders|length }})</span>
+        </div>
+        <div class="flex flex-col gap-2">
+            {% for order in preparing_orders %}
+            <a hx-get="{% url 'delivery:order_detail' order.id %}"
+               hx-target="#main-content-area"
+               hx-push-url="true"
+               class="card card-hover cursor-pointer">
+                <div class="card-body p-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">{{ order.number }}</span>
+                        <span class="badge badge-sm color-{% if order.order_type == 'delivery' %}primary{% else %}medium{% endif %}">
+                            {{ order.get_order_type_display }}
+                        </span>
+                    </div>
+                    <div class="text-sm">{{ order.customer_name }}</div>
+                    {% if order.driver %}
+                    <div class="text-xs text-muted mt-1">
+                        {% icon "person-outline" css_class="text-xs" %} {{ order.driver.name }}
+                    </div>
+                    {% endif %}
+                    {% if order.total %}
+                    <div class="text-sm font-semibold mt-1">{{ order.total }}</div>
+                    {% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <div class="text-center text-sm text-muted py-4">{% trans "No orders preparing" %}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Ready column -->
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <span class="badge color-success">{% trans "Ready" %}</span>
+            <span class="text-xs text-muted">({{ ready_orders|length }})</span>
+        </div>
+        <div class="flex flex-col gap-2">
+            {% for order in ready_orders %}
+            <a hx-get="{% url 'delivery:order_detail' order.id %}"
+               hx-target="#main-content-area"
+               hx-push-url="true"
+               class="card card-hover cursor-pointer">
+                <div class="card-body p-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">{{ order.number }}</span>
+                        <span class="badge badge-sm color-{% if order.order_type == 'delivery' %}primary{% else %}medium{% endif %}">
+                            {{ order.get_order_type_display }}
+                        </span>
+                    </div>
+                    <div class="text-sm">{{ order.customer_name }}</div>
+                    {% if order.driver %}
+                    <div class="text-xs text-muted mt-1">
+                        {% icon "person-outline" css_class="text-xs" %} {{ order.driver.name }}
+                    </div>
+                    {% endif %}
+                    {% if order.delivery_address %}
+                    <div class="text-xs text-muted mt-1 truncate">
+                        {% icon "location-outline" css_class="text-xs" %} {{ order.delivery_address }}
+                    </div>
+                    {% endif %}
+                    {% if order.total %}
+                    <div class="text-sm font-semibold mt-1">{{ order.total }}</div>
+                    {% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <div class="text-center text-sm text-muted py-4">{% trans "No orders ready" %}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- In Transit column -->
+    <div>
+        <div class="flex items-center gap-2 mb-3">
+            <span class="badge color-info">{% trans "In Transit" %}</span>
+            <span class="text-xs text-muted">({{ in_transit_orders|length }})</span>
+        </div>
+        <div class="flex flex-col gap-2">
+            {% for order in in_transit_orders %}
+            <a hx-get="{% url 'delivery:order_detail' order.id %}"
+               hx-target="#main-content-area"
+               hx-push-url="true"
+               class="card card-hover cursor-pointer">
+                <div class="card-body p-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">{{ order.number }}</span>
+                        <span class="badge badge-sm color-primary">
+                            {{ order.get_order_type_display }}
+                        </span>
+                    </div>
+                    <div class="text-sm">{{ order.customer_name }}</div>
+                    {% if order.driver %}
+                    <div class="text-xs text-muted mt-1">
+                        {% icon "person-outline" css_class="text-xs" %} {{ order.driver.name }}
+                    </div>
+                    {% endif %}
+                    {% if order.delivery_address %}
+                    <div class="text-xs text-muted mt-1 truncate">
+                        {% icon "location-outline" css_class="text-xs" %} {{ order.delivery_address }}
+                    </div>
+                    {% endif %}
+                    {% if order.total %}
+                    <div class="text-sm font-semibold mt-1">{{ order.total }}</div>
+                    {% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <div class="text-center text-sm text-muted py-4">{% trans "No orders in transit" %}</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
