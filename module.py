@@ -7,8 +7,8 @@ from django.utils.translation import gettext_lazy as _
 
 MODULE_ID = "delivery"
 MODULE_NAME = _("Delivery")
-MODULE_ICON = "bicycle-outline"
-MODULE_VERSION = "1.0.0"
+MODULE_ICON = 'material:delivery_dining'
+MODULE_VERSION = '1.0.1'
 MODULE_CATEGORY = "pos"
 
 MODULE_INDUSTRIES = ["restaurant", "bar", "pizzeria", "fast_food", "kebab_shop", "sushi_restaurant", "bakery", "food_truck"]
