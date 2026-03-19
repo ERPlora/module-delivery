@@ -8,7 +8,9 @@ from django.utils.translation import gettext_lazy as _
 MODULE_ID = "delivery"
 MODULE_NAME = _("Delivery")
 MODULE_ICON = 'material:delivery_dining'
-MODULE_VERSION = '1.0.1'
+MODULE_VERSION = '1.0.2'
+MODULE_DESCRIPTION = _('Delivery order management, zones, and driver tracking')
+MODULE_AUTHOR = 'ERPlora'
 MODULE_CATEGORY = "pos"
 
 MODULE_INDUSTRIES = ["restaurant", "bar", "pizzeria", "fast_food", "kebab_shop", "sushi_restaurant", "bakery", "food_truck"]
