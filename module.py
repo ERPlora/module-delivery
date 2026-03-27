@@ -30,7 +30,7 @@ NAVIGATION = [
     {"id": "settings", "label": _("Settings"), "icon": "settings-outline", "view": "settings"},
 ]
 
-DEPENDENCIES = ['orders', 'cash_register', 'customers']
+DEPENDENCIES = ['commands', 'cash_register', 'customers']
 
 SETTINGS = {
     "default_prep_time": 20,
