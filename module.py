@@ -12,6 +12,7 @@ MODULE_VERSION = '1.0.2'
 MODULE_DESCRIPTION = _('Delivery order management, zones, and driver tracking')
 MODULE_AUTHOR = 'ERPlora'
 MODULE_CATEGORY = "pos"
+HAS_MODELS = True
 
 MODULE_INDUSTRIES = ["restaurant", "bar", "pizzeria", "fast_food", "kebab_shop", "sushi_restaurant", "bakery", "food_truck"]
 
